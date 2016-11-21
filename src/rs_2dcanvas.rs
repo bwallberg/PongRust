@@ -56,15 +56,12 @@ impl Engine {
             resolution: resolution,
             window: window,
             gl: GlGraphics::new(opengl)
-            // renderingQuene: Vec::new()
         }
     }
 
     pub fn start(&mut self, rendering_quene: Vec<&Rectangle>) {
         self.state = State::Running;
-        // we're not modifying events, why mut?
         let mut events = self.window.events();
-        // I have no clue what this does?
         while let Some(e) = events.next(&mut self.window) {
             if let Some(r) = e.render_args() {
                 self.render(&rendering_quene, &r);
@@ -87,10 +84,6 @@ impl Engine {
             }
         });
     }
-
-    // pub fn addComponent(&mut self, component: &Rectangle) {
-    //     self.renderingQuene.push(component);
-    // }
 }
 
 pub struct Rectangle {
@@ -114,7 +107,6 @@ impl Rectangle {
         let transform = c.transform.trans(self.position.x, self.position.y);
 
         rectangle(self.color, dimensions, transform, gl);
-
 
         // println!("Render Asset position: {:?}, size {:?}", self.position, self.size);
     }
