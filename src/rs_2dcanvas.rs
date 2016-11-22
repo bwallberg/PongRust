@@ -19,7 +19,7 @@ pub enum State {
     Stopped
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Position {
     pub x: f64,
     pub y: f64
@@ -59,7 +59,7 @@ impl Engine {
         }
     }
 
-    pub fn start(&mut self, rendering_quene: Vec<&Rectangle>) {
+    pub fn start<UpdateFunction: Fn()>(&mut self, rendering_quene: Vec<&Rectangle>, app_update: UpdateFunction) {
         self.state = State::Running;
         let mut events = self.window.events();
         while let Some(e) = events.next(&mut self.window) {
@@ -69,6 +69,7 @@ impl Engine {
             }
 
             if let Some(u) = e.update_args() {
+                app_update();
                 // app.update(&u);
             }
         }
@@ -100,6 +101,14 @@ impl Rectangle {
             color: color
         }
     }
+    pub fn update_x(&mut self, x: f64) {
+        self.position.x = x;
+    }
+
+    pub fn update_y(&mut self, y: f64) {
+        self.position.y = y;
+    }
+
     pub fn render(&self, c: self::graphics::Context, gl: &mut GlGraphics) {
         use self::graphics::*;
         

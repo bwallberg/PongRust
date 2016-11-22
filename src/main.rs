@@ -8,33 +8,27 @@ enum PlayerState {
 }
 
 struct Player {
-    // position: rs_2dcanvas::Position,
+    position: rs_2dcanvas::Position,
     // size: rs_2dcanvas::Size,
     speed: u32,
     is_ai: bool,
-    component: rs_2dcanvas::Rectangle,
     state: PlayerState
 }
 
 impl Player {
     pub fn new(is_ai: bool, position: rs_2dcanvas::Position) -> Player {
-        let mut color: [f32; 4];
-        if is_ai == true {
-            color = [1.0, 0.0, 0.0, 1.0];
-        } else {
-            color = [0.0, 1.0, 0.0, 1.0];
-        }
         Player {
+            position: position,
             // size: rs_2dcanvas::Size { width: 5, height: 20 },
             speed: 2,
             is_ai: is_ai,
-            component: rs_2dcanvas::Rectangle::new(
-                position,
-                rs_2dcanvas::Size { width: 5, height: 20 },
-                color
-            ),
             state: if is_ai == true { PlayerState::Ai } else { PlayerState::Idle }
         }
+    }
+
+    pub fn on_tick(&mut self, component: &rs_2dcanvas::Rectangle) {
+        component.update_y(2.0);
+        println!("wat");
     }
 }
 
@@ -46,7 +40,7 @@ fn main() {
         }
     );
 
-    let player = Player::new(
+    let mut player = Player::new(
         false,
         rs_2dcanvas::Position {
             x: 10.0,
@@ -54,7 +48,13 @@ fn main() {
         }
     );
 
-    let enemy = Player::new(
+    let mut player_component = rs_2dcanvas::Rectangle::new(
+        player.position.clone(),
+        rs_2dcanvas::Size { width: 5, height: 20 },
+        [0.0, 1.0, 0.0, 1.0]
+    );
+
+    let mut enemy = Player::new(
         true,
         rs_2dcanvas::Position {
             x: 1270.0,
@@ -62,10 +62,27 @@ fn main() {
         }
     );
 
+    let mut enemy_component = rs_2dcanvas::Rectangle::new(
+        enemy.position.clone(),
+        rs_2dcanvas::Size { width: 5, height: 20 },
+        [1.0, 0.0, 0.0, 1.0]
+    );
+
     println!("State is: {:?}", engine.state);
-    engine.start(vec![
-        &player.component,
-        &enemy.component
-    ]);
+
+
+
+    // Cannot do two borrows below, perhaps make component a borrow to Player? or how...
+
+    let on_render_vector = vec![
+        &player_component,
+        &enemy_component
+    ];
+
+    engine.start(on_render_vector, () => {
+        // this doesn't work
+        player.on_tick(&player_component);
+        enemy.on_tick(&enemy_component);
+    });
     println!("State is: {:?}", engine.state);
 }
