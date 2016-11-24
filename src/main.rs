@@ -1,3 +1,14 @@
+extern crate piston;
+extern crate graphics;
+extern crate glutin_window;
+extern crate opengl_graphics;
+
+use piston::window::WindowSettings;
+use piston::event_loop::*;
+use piston::input::*;
+use glutin_window::GlutinWindow as Window;
+use opengl_graphics::{ GlGraphics, OpenGL };
+
 mod rs_2dcanvas;
 
 enum PlayerState {
@@ -26,20 +37,21 @@ impl Player {
         }
     }
 
-    pub fn on_tick(&mut self, component: &rs_2dcanvas::Rectangle) {
-        component.update_y(2.0);
-        println!("wat");
+    pub fn on_tick(&mut self) {
+        self.position.y += 1.0;
+    }
+
+    fn update_y(&mut self, y: f64) {
+        self.position.y;
+    }
+
+    fn update_x(&mut self, x: f64) {
+        self.position.x;
     }
 }
 
 fn main() {
-    let mut engine = rs_2dcanvas::Engine::new(
-        rs_2dcanvas::Size {
-            width: 1280, 
-            height: 720
-        }
-    );
-
+    let mut engine = rs_2dcanvas::Engine::new();
     let mut player = Player::new(
         false,
         rs_2dcanvas::Position {
@@ -70,19 +82,35 @@ fn main() {
 
     println!("State is: {:?}", engine.state);
 
+    let opengl = opengl_graphics::OpenGL::V3_2;
+    let mut window: Window = WindowSettings::new(
+                "RS 2DCanvas",
+                [1280, 720]
+            )
+            .opengl(opengl)
+            .exit_on_esc(true)
+            .build()
+            .unwrap();
+    let mut gl = GlGraphics::new(opengl);
 
+    engine.start();
+    let mut events = window.events();
+    while let Some(e) = events.next(&mut window) {
+        if let Some(u) = e.update_args() {
+            player.on_tick();
+            enemy.on_tick();
+        }
 
-    // Cannot do two borrows below, perhaps make component a borrow to Player? or how...
+        if let Some(r) = e.render_args() {
+            player_component.update_y(player.position.y);
+            enemy_component.update_y(player.position.y);
+            engine.render(&mut gl, vec![
+                &player_component,
+                &enemy_component
+            ], &r);
+        }
+    }
+    engine.stop();
 
-    let on_render_vector = vec![
-        &player_component,
-        &enemy_component
-    ];
-
-    engine.start(on_render_vector, () => {
-        // this doesn't work
-        player.on_tick(&player_component);
-        enemy.on_tick(&enemy_component);
-    });
     println!("State is: {:?}", engine.state);
 }

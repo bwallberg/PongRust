@@ -32,53 +32,27 @@ pub struct Size {
 }
 
 pub struct Engine {
-    window: Window,
-    gl: GlGraphics,
-    // pub renderingQuene: Vec<&'a Rectangle>,
     pub state: State,
-    pub resolution: Size
 }
 
 impl Engine {
-    pub fn new(resolution: Size) -> Engine {
-        let opengl = OpenGL::V3_2;
-        let window: Window = WindowSettings::new(
-                "RS 2DCanvas",
-                [resolution.width, resolution.height]
-            )
-            .opengl(opengl)
-            .exit_on_esc(true)
-            .build()
-            .unwrap();
-
+    pub fn new() -> Engine {
         Engine {
-            state: State::Idle,
-            resolution: resolution,
-            window: window,
-            gl: GlGraphics::new(opengl)
+            state: State::Idle
         }
     }
 
-    pub fn start<UpdateFunction: Fn()>(&mut self, rendering_quene: Vec<&Rectangle>, app_update: UpdateFunction) {
+    pub fn start(&mut self) {
         self.state = State::Running;
-        let mut events = self.window.events();
-        while let Some(e) = events.next(&mut self.window) {
-            if let Some(r) = e.render_args() {
-                self.render(&rendering_quene, &r);
+    }
 
-            }
-
-            if let Some(u) = e.update_args() {
-                app_update();
-                // app.update(&u);
-            }
-        }
+    pub fn stop(&mut self) {
         self.state = State::Stopped;
     }
 
-    fn render(&mut self, rendering_quene: &Vec<&Rectangle>, rendering_args: &RenderArgs) {
+    pub fn render(&mut self, gl: &mut opengl_graphics::GlGraphics, rendering_quene: Vec<&Rectangle>, rendering_args: &RenderArgs) {
         use self::graphics::*;
-        self.gl.draw(rendering_args.viewport(), |c, gl| { // TODO: look into closures
+        gl.draw(rendering_args.viewport(), |c, gl| { // TODO: look into closures
             clear([0.0, 0.0, 0.0, 0.0], gl);
             for component in rendering_quene.iter() {
                 component.render(c, gl);
