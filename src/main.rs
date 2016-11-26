@@ -9,6 +9,7 @@ use piston::input::*;
 use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{ GlGraphics, OpenGL };
 
+
 mod rs_2dcanvas;
 
 enum PlayerState {
@@ -21,7 +22,7 @@ enum PlayerState {
 struct Player {
     position: rs_2dcanvas::Position,
     // size: rs_2dcanvas::Size,
-    speed: u32,
+    speed: f64,
     is_ai: bool,
     state: PlayerState
 }
@@ -31,14 +32,27 @@ impl Player {
         Player {
             position: position,
             // size: rs_2dcanvas::Size { width: 5, height: 20 },
-            speed: 2,
+            speed: 2.0,
             is_ai: is_ai,
             state: if is_ai == true { PlayerState::Ai } else { PlayerState::Idle }
         }
     }
 
     pub fn on_tick(&mut self) {
-        self.position.y += 1.0;
+        match self.state {
+            PlayerState::Up => self.position.y -= self.speed,
+            PlayerState::Down => self.position.y += self.speed,
+            PlayerState::Ai => self.on_tick_ai(),
+            PlayerState::Idle => self.position.y += 0.0 // How can I do nothing on a match? this is unnecessary
+        }
+    }
+
+    pub fn set_state(&mut self, state: PlayerState) {
+        self.state = state;
+    }
+
+    fn on_tick_ai(&mut self) {
+
     }
 
     fn update_y(&mut self, y: f64) {
@@ -80,6 +94,15 @@ fn main() {
         [1.0, 0.0, 0.0, 1.0]
     );
 
+    let mut ball_component = rs_2dcanvas::Rectangle::new(
+        rs_2dcanvas::Position {
+            x: 1280.0/2.0,
+            y: 720.0/2.0
+        },
+        rs_2dcanvas::Size { width: 5, height: 5 },
+        [1.0, 1.0, 1.0, 1.0]
+    );
+
     println!("State is: {:?}", engine.state);
 
     let opengl = opengl_graphics::OpenGL::V3_2;
@@ -96,6 +119,24 @@ fn main() {
     engine.start();
     let mut events = window.events();
     while let Some(e) = events.next(&mut window) {
+        
+        if let Some(Button::Keyboard(key)) = e.press_args() {
+            match key {
+                Key::Up => player.set_state(PlayerState::Up),
+                Key::Down => player.set_state(PlayerState::Down),
+                _ => println!("Pressed keyboard key {:?}", key)
+            }
+        }
+
+        if let Some(Button::Keyboard(key)) = e.release_args() {
+            match key {
+                Key::Up => player.set_state(PlayerState::Idle),
+                Key::Down => player.set_state(PlayerState::Idle),
+                _ => println!("Released keyboard key {:?}", key)
+            }
+        };
+
+
         if let Some(u) = e.update_args() {
             player.on_tick();
             enemy.on_tick();
@@ -103,10 +144,11 @@ fn main() {
 
         if let Some(r) = e.render_args() {
             player_component.update_y(player.position.y);
-            enemy_component.update_y(player.position.y);
+            enemy_component.update_y(enemy.position.y);
             engine.render(&mut gl, vec![
                 &player_component,
-                &enemy_component
+                &enemy_component,
+                &ball_component
             ], &r);
         }
     }
