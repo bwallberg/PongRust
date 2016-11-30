@@ -26,6 +26,12 @@ pub struct Position {
 }
 
 #[derive(Debug)]
+pub struct Direction {
+    pub x: i32,
+    pub y: i32
+}
+
+#[derive(Debug)]
 pub struct Size {
     pub width: u32, // unsigned int, since width/height should never be negative (?)
     pub height: u32
@@ -87,7 +93,7 @@ impl Rectangle {
         use self::graphics::*;
         
         let dimensions = rectangle::rectangle_by_corners(0.0, 0.0, self.size.width as f64, self.size.height as f64);
-        let transform = c.transform.trans(self.position.x, self.position.y);
+        let transform = c.transform.trans(self.position.x - (self.size.width as f64 / 2.0) , self.position.y - (self.size.height as f64 / 2.0));
 
         rectangle(self.color, dimensions, transform, gl);
 
