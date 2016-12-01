@@ -25,17 +25,17 @@ enum PlayerState {
 
 struct Player {
     position: rs_2dcanvas::Position,
-    // size: rs_2dcanvas::Size,
+    boundaries: rs_2dcanvas::Boundaries,
     speed: f64,
     is_ai: bool,
     state: PlayerState
 }
 
 impl Player {
-    pub fn new(is_ai: bool, position: rs_2dcanvas::Position) -> Player {
+    pub fn new(is_ai: bool, position: rs_2dcanvas::Position, boundaries: rs_2dcanvas::Boundaries) -> Player {
         Player {
             position: position,
-            // size: rs_2dcanvas::Size { width: 5, height: 20 },
+            boundaries: boundaries,
             speed: 2.0,
             is_ai: is_ai,
             state: if is_ai == true { PlayerState::Ai } else { PlayerState::Idle }
@@ -66,7 +66,10 @@ impl Player {
             _ => 0.0
         };
 
-        self.position.y += y;
+        println!("Player Y = {}", self.position.y + y );
+        if self.position.y + y > self.boundaries.y[0] && self.position.y + y < self.boundaries.y[1] {
+            self.position.y += y;
+        }
     }
 
     fn update_x(&mut self) {
@@ -82,16 +85,18 @@ enum BallState {
 struct Ball {
     state: BallState,
     position: rs_2dcanvas::Position,
+    boundaries: rs_2dcanvas::Boundaries,
     direction: rs_2dcanvas::Direction,
     speed: f64,
     speedMod: f64
 }
 
 impl Ball {
-    pub fn new(position: rs_2dcanvas::Position) -> Ball {
+    pub fn new(position: rs_2dcanvas::Position, boundaries: rs_2dcanvas::Boundaries) -> Ball {
         Ball {
             state: BallState::Idle,
             position: position,
+            boundaries: boundaries,
             direction: rs_2dcanvas::Direction { x: 0, y: 0 },
             speed: 2.0,
             speedMod: 0.3
@@ -161,6 +166,10 @@ fn main() {
         rs_2dcanvas::Position {
             x: 10.0,
             y: 720.0/2.0
+        },
+        rs_2dcanvas::Boundaries {
+            x: [0.0, 10.0],
+            y: [10.0, 710.0]
         }
     );
 
@@ -175,6 +184,10 @@ fn main() {
         rs_2dcanvas::Position {
             x: 1270.0,
             y: 720.0/2.0
+        },
+        rs_2dcanvas::Boundaries {
+            x: [1270.0, 1280.0],
+            y: [10.0, 710.0]
         }
     );
 
@@ -188,6 +201,10 @@ fn main() {
         rs_2dcanvas::Position {
             x: 1280.0/2.0,
             y: 720.0/2.0
+        },
+        rs_2dcanvas::Boundaries {
+            x: [0.0, 1280.0],
+            y: [5.0, 715.0]
         }
     );
 

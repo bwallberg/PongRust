@@ -32,6 +32,12 @@ pub struct Direction {
 }
 
 #[derive(Debug)]
+pub struct Boundaries {
+    pub x: [f64; 2],
+    pub y: [f64; 2]
+}
+
+#[derive(Debug)]
 pub struct Size {
     pub width: u32, // unsigned int, since width/height should never be negative (?)
     pub height: u32
