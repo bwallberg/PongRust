@@ -37,6 +37,11 @@ pub struct Boundaries {
     pub y: [f64; 2]
 }
 
+pub struct BoundariesHit {
+    pub x: bool,
+    pub y: bool
+}
+
 #[derive(Debug)]
 pub struct Size {
     pub width: u32, // unsigned int, since width/height should never be negative (?)
@@ -71,6 +76,17 @@ impl Engine {
             }
         });
     }
+}
+
+pub fn check_boundaries(position: &Position, boundaries: &Boundaries) -> BoundariesHit {
+    let mut boundaries_hit = BoundariesHit { x: false, y: false };
+    if position.y < boundaries.y[0] || position.y > boundaries.y[1] {
+        boundaries_hit.y = true;
+    }
+    if position.x < boundaries.x[0] || position.x > boundaries.x[1] {
+        boundaries_hit.x = true;
+    }
+    return boundaries_hit;
 }
 
 pub struct Rectangle {

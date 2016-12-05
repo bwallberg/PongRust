@@ -66,9 +66,13 @@ impl Player {
             _ => 0.0
         };
 
-        println!("Player Y = {}", self.position.y + y );
-        if self.position.y + y > self.boundaries.y[0] && self.position.y + y < self.boundaries.y[1] {
-            self.position.y += y;
+        let new_position = rs_2dcanvas::Position {
+            y: self.position.y + y,
+            x: self.position.x
+        };
+
+        if rs_2dcanvas::check_boundaries(&new_position, &self.boundaries).y == false {
+            self.position = new_position; // do we need to cleanup old position?
         }
     }
 
@@ -125,17 +129,45 @@ impl Ball {
             }
         }
 
+        let mut new_position = self.get_new_position(false);        
+        let boundaries_hit = rs_2dcanvas::check_boundaries(&new_position, &self.boundaries);
+
+        if boundaries_hit.y || boundaries_hit.x {
+            if boundaries_hit.y {
+                self.direction.y *= -1;
+            }
+            if boundaries_hit.x {
+                self.direction.x *= -1;
+            }
+            new_position = self.get_new_position(true);
+        }
+
+        self.position = new_position;
+    }
+
+    fn get_new_position(&mut self, speed_increase: bool) -> rs_2dcanvas::Position {
+        let mut new_position = rs_2dcanvas::Position {
+            y: self.position.y,
+            x: self.position.x
+        };
+
+        if(speed_increase) {
+            self.speed += self.speedMod;
+        }
+
         if self.direction.x > 0 {
-            self.position.x += self.speed;
+            new_position.x += self.speed;
         } else if self.direction.x < 0 {
-            self.position.x -= self.speed;
+            new_position.x -= self.speed;
         }
 
         if self.direction.y > 0 {
-            self.position.y += self.speed;
+            new_position.y += self.speed;
         } else if self.direction.y < 0 {
-            self.position.y -= self.speed;
+            new_position.y -= self.speed;
         }
+
+        return new_position;
     }
 
     pub fn toggle_state(&mut self) {
