@@ -115,20 +115,6 @@ impl Ball {
     }
 
     pub fn update_position(&mut self) {
-        if self.direction.x == 0  && self.direction.y == 0 {
-            let mut rng = rand::thread_rng();
-            if rng.gen() {
-                self.direction.x = 1;
-            } else {
-                self.direction.x = -1;
-            }
-            if rng.gen() {
-                self.direction.y = 1;
-            } else {
-                self.direction.y = -1;
-            }
-        }
-
         let mut new_position = self.get_new_position(false);        
         let boundaries_hit = rs_2dcanvas::check_boundaries(&new_position, &self.boundaries);
 
@@ -178,7 +164,18 @@ impl Ball {
     }
 
     fn set_moving(&mut self) {
-        self.state = BallState::Moving
+        let mut rng = rand::thread_rng();
+        if rng.gen() {
+            self.direction.x = 1;
+        } else {
+            self.direction.x = -1;
+        }
+        if rng.gen() {
+            self.direction.y = 1;
+        } else {
+            self.direction.y = -1;
+        }
+        self.state = BallState::Moving;
     }
 
     fn set_idle(&mut self) {
