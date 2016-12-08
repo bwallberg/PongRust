@@ -36,17 +36,17 @@ impl Player {
         Player {
             position: position,
             boundaries: boundaries,
-            speed: 2.0,
+            speed: 4.0,
             is_ai: is_ai,
             state: if is_ai == true { PlayerState::Ai } else { PlayerState::Idle }
         }
     }
 
-    pub fn on_tick(&mut self) {
+    pub fn on_tick(&mut self, ball: &Ball) {
         match self.state {
             PlayerState::Up => self.update_y(),
             PlayerState::Down => self.update_y(),
-            PlayerState::Ai => self.on_tick_ai(),
+            PlayerState::Ai => self.on_tick_ai(ball),
             PlayerState::Idle => self.position.y += 0.0 // How can I do nothing on a match? this is unnecessary
         }
     }
@@ -55,8 +55,8 @@ impl Player {
         self.state = state;
     }
 
-    fn on_tick_ai(&mut self) {
-
+    fn on_tick_ai(&mut self, ball: &Ball) {
+        self.position.y = ball.position.y;
     }
 
     fn update_y(&mut self) {
@@ -102,7 +102,7 @@ impl Ball {
             position: position,
             boundaries: boundaries,
             direction: rs_2dcanvas::Direction { x: 0, y: 0 },
-            speed: 2.0,
+            speed: 4.0,
             speedMod: 0.3
         }
     }
@@ -123,12 +123,17 @@ impl Ball {
                 self.direction.y *= -1;
             }
             if boundaries_hit.x {
-                self.direction.x *= -1;
+                self.set_idle();
+                return;
             }
             new_position = self.get_new_position(true);
         }
 
         self.position = new_position;
+    }
+
+    pub fn hit_paddle(&mut self) {
+        self.direction.x *= -1;
     }
 
     fn get_new_position(&mut self, speed_increase: bool) -> rs_2dcanvas::Position {
@@ -185,6 +190,7 @@ impl Ball {
         self.position.y = 720.0/2.0;
         self.direction.x = 0;
         self.direction.y = 0;
+        self.speed = 4.0;
     }
 }
 
@@ -204,7 +210,7 @@ fn main() {
 
     let mut player_component = rs_2dcanvas::Rectangle::new(
         player.position.clone(),
-        rs_2dcanvas::Size { width: 5, height: 20 },
+        rs_2dcanvas::Size { width: 5, height: 60 },
         [0.0, 1.0, 0.0, 1.0]
     );
 
@@ -222,7 +228,7 @@ fn main() {
 
     let mut enemy_component = rs_2dcanvas::Rectangle::new(
         enemy.position.clone(),
-        rs_2dcanvas::Size { width: 5, height: 20 },
+        rs_2dcanvas::Size { width: 5, height: 60 },
         [1.0, 0.0, 0.0, 1.0]
     );
 
@@ -279,16 +285,26 @@ fn main() {
 
 
         if let Some(u) = e.update_args() {
-            player.on_tick();
-            enemy.on_tick();
-            ball.on_tick();
         }
 
         if let Some(r) = e.render_args() {
+            ball.on_tick();
+            player.on_tick(&ball);
+            enemy.on_tick(&ball);
+
             player_component.update_y(player.position.y);
             enemy_component.update_y(enemy.position.y);
             ball_component.update_y(ball.position.y);
             ball_component.update_x(ball.position.x);
+                
+            if rs_2dcanvas::check_collision(&player_component, &ball_component) == true {
+                println!("ball hit player");
+                ball.hit_paddle();
+            } else if rs_2dcanvas::check_collision(&enemy_component, &ball_component) == true {
+                println!("ball hit enemy");
+                ball.hit_paddle();
+            }
+            
             engine.render(&mut gl, vec![
                 &player_component,
                 &enemy_component,

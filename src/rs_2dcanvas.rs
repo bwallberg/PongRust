@@ -89,6 +89,19 @@ pub fn check_boundaries(position: &Position, boundaries: &Boundaries) -> Boundar
     return boundaries_hit;
 }
 
+pub fn check_collision(rectangle_a: &Rectangle, rectangle_b: &Rectangle) -> bool {
+    let wx_a = rectangle_a.position.x + rectangle_a.size.width as f64;
+    let wx_b = rectangle_b.position.x + rectangle_b.size.width as f64;
+    let hy_a = rectangle_a.position.y + rectangle_a.size.height as f64;
+    let hy_b = rectangle_b.position.y + rectangle_b.size.height as f64;
+    
+    if rectangle_a.position.x < wx_b && wx_a > rectangle_b.position.x
+        && rectangle_a.position.y < hy_b && hy_a > rectangle_b.position.y {
+            return true;
+    }
+    return false;
+}
+
 pub struct Rectangle {
     position: Position,
     size: Size,
@@ -115,7 +128,7 @@ impl Rectangle {
         use self::graphics::*;
         
         let dimensions = rectangle::rectangle_by_corners(0.0, 0.0, self.size.width as f64, self.size.height as f64);
-        let transform = c.transform.trans(self.position.x - (self.size.width as f64 / 2.0) , self.position.y - (self.size.height as f64 / 2.0));
+        let transform = c.transform.trans(self.position.x /*- (self.size.width as f64 / 2.0)*/ , self.position.y /*- (self.size.height as f64 / 2.0)*/);
 
         rectangle(self.color, dimensions, transform, gl);
 
