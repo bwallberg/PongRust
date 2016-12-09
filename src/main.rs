@@ -19,8 +19,7 @@ mod rs_2dcanvas;
 enum PlayerState {
     Idle,
     Up,
-    Down,
-    Ai
+    Down
 }
 
 struct Player {
@@ -38,15 +37,14 @@ impl Player {
             boundaries: boundaries,
             speed: 4.0,
             is_ai: is_ai,
-            state: if is_ai == true { PlayerState::Ai } else { PlayerState::Idle }
+            state: PlayerState::Idle
         }
     }
 
-    pub fn on_tick(&mut self, ball: &Ball) {
+    pub fn on_tick(&mut self) {
         match self.state {
             PlayerState::Up => self.update_y(),
             PlayerState::Down => self.update_y(),
-            PlayerState::Ai => self.on_tick_ai(ball),
             PlayerState::Idle => self.position.y += 0.0 // How can I do nothing on a match? this is unnecessary
         }
     }
@@ -55,8 +53,16 @@ impl Player {
         self.state = state;
     }
 
-    fn on_tick_ai(&mut self, ball: &Ball) {
-        self.position.y = ball.position.y;
+    pub fn on_tick_ai(&mut self, ball: &Ball) {
+        let player_center = self.position.y + 60.0/2.0;
+        if ball.position.y > player_center { 
+            self.set_state(PlayerState::Down);
+        } else if ball.position.y < player_center {
+            self.set_state(PlayerState::Up);
+        } else {
+            self.set_state(PlayerState::Idle);
+        }
+        self.on_tick();
     }
 
     fn update_y(&mut self) {
@@ -289,8 +295,8 @@ fn main() {
 
         if let Some(r) = e.render_args() {
             ball.on_tick();
-            player.on_tick(&ball);
-            enemy.on_tick(&ball);
+            player.on_tick();
+            enemy.on_tick_ai(&ball);
 
             player_component.update_y(player.position.y);
             enemy_component.update_y(enemy.position.y);
